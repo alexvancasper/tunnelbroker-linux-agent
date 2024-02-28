@@ -71,19 +71,19 @@ jobs:
           username: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
-          source: "/bin/tunnelbroker_agent, /services/"
-          target: /opt/6in4/agent/bin/
+          source: "/agent/"
+          target: /opt/6in4/agent/
 
       # Restart
       - name: restart agent
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
         with:
           host: ${{ secrets.VM_SSH_HOST }}
           username: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
-          envs: TAG_SHORT
           script: |
-            systemctl restart tunnelbroker-agent
+            chmod +x /opt/6in4/agent/bin/tunnelbrokeragent
+            cp /opt/6in4/agent/tunnelbroker-agent.service /etc/systemd/system/tunnelbroker-agent.service
+            systemctl daemon-reload
+            systemctl restart tunnelbroker-agent.service

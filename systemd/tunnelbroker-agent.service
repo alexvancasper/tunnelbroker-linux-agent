@@ -1,0 +1,16 @@
+[Unit]
+Description=Tunnel Broker agent
+After=network.target
+
+[Service]
+Environment=BROKER_CONN=amqp://brokeruser:brokerpass@localhost:5672/
+Environment=QUEUENAME=6in4
+ExecStart=/opt/6in4/agent/bin/tunnelbrokeragent
+ExecStop=/usr/bin/pkill tunnelbrokeragent
+Type=simple
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+RequiredBy=network.target
