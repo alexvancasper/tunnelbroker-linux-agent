@@ -1,0 +1,4 @@
+/sbin/ip tunnel add {{ .TunnelName }} mode sit remote {{ .IPv4Remote }} local {{ .IPv4Local }}
+/sbin/ip link set {{ .TunnelName }} up
+/sbin/ip addr add {{ .IPv6ServerEndpoint }} dev {{ .TunnelName }}
+/sbin/ip -6 route add {{ .PD }} dev {{ .TunnelName }}

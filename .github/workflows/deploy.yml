@@ -1,0 +1,89 @@
+name: Build-Deploy
+permissions:
+  packages: write
+  contents: write
+on:
+  push:
+    branches: ["dev", "main"]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Install golang
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          check-latest: true
+      - run: go version
+
+      - name: Install Compose
+        uses: ndeloof/install-compose-action@v0.0.1
+        with:
+          legacy: true    # will also install in PATH as `docker-compose`
+      - run: docker-compose --version
+
+      - name: Login to Docker hub Container Registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # - name: Get current branch
+      #   id: check_step
+      #   run: |
+      #     raw=$(git branch -r --contains ${{ github.ref }})
+      #     branch=${raw##*/}
+      #     echo "{name}=branch" >> $GITHUB_OUTPUT
+      #     echo "Branch is $branch."
+
+      - name: Set tag env
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        # ${{ steps.vars.outputs.sha_short }}
+
+  deploy_via_ssh:
+    needs: build_and_push
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set tag env
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Show tag short
+        run: export TAG_SHORT=${{ steps.vars.outputs.sha_short }}
+
+      # Deploy 
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@v0.1.7
+        env:
+          TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
+        with:
+          host: ${{ secrets.VM_SSH_HOST }}
+          username: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_SSH_PORT }}
+          source: "/bin/tunnelbroker_agent, /services/"
+          target: /opt/6in4/agent/bin/
+
+      # Restart
+      - name: restart agent
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
+        with:
+          host: ${{ secrets.VM_SSH_HOST }}
+          username: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_SSH_PORT }}
+          envs: TAG_SHORT
+          script: |
+            systemctl restart tunnelbroker-agent
