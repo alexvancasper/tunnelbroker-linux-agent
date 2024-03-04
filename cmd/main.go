@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexvancasper/TunnelBroker/agent/internal/broker"
 	"github.com/alexvancasper/TunnelBroker/agent/internal/doer"
+	"github.com/alexvancasper/broker"
 	formatter "github.com/fabienm/go-logrus-formatters"
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
