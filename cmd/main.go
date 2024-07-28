@@ -91,6 +91,9 @@ func Listener(ctx context.Context, wg *sync.WaitGroup, log *logrus.Logger, msgs 
 			case string(broker.DELETE):
 				wg.Add(1)
 				go h.DeleteTunnel(wg, msg.Body)
+			case string(broker.UPDATE):
+				wg.Add(1)
+				go h.UpdateTunnel(wg, msg.Body)
 			}
 		}
 	}

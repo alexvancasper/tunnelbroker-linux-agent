@@ -47,7 +47,30 @@ func (h Handler) DeleteTunnel(wg *sync.WaitGroup, data []byte) {
 	}
 	l.Debugf("Tunnel delete info: %v\n", tun)
 	ExecDeleteCmd(tun, h.Log)
+}
 
+func (h Handler) UpdateTunnel(wg *sync.WaitGroup, data []byte) {
+	defer wg.Done()
+	l := h.Log.WithFields(logrus.Fields{
+		"function": "UpdateTunnel",
+	})
+	var tun models.Tunnel
+	err := json.Unmarshal(data, &tun)
+	if err != nil {
+		l.Errorf("Tunnel unmarshalling error: %s", err)
+	}
+	l.Debugf("Tunnel update info: %v\n", tun)
+	ExecUpdateCmd(tun, h.Log)
+}
+
+func ExecUpdateCmd(tun models.Tunnel, log *logrus.Logger) {
+	l := log.WithFields(logrus.Fields{
+		"function": "ExecUpdateCmd",
+	})
+	ExecDeleteCmd(tun, log)
+	l.Debug("execDeleteCmd executed")
+	ExecAddCmd(tun, log)
+	l.Debug("execAddCmd executed")
 }
 
 func ExecAddCmd(tun models.Tunnel, log *logrus.Logger) {
