@@ -6,12 +6,6 @@ on:
   push:
     branches: ["main"]
 
-
-env:
-  HUB_USER: alex129
-  API_REPO: agent
-  TAG_SHORT: 
-
 jobs:
   build_and_push:
     runs-on: ubuntu-22.04
@@ -32,11 +26,13 @@ jobs:
         with:
           go-version: '1.22'
           check-latest: true
-          
+
       - run: go version
       - name: Install dependencies
         run: go mod tidy
       - name: Build
+        env:
+          TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
         run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -ldflags "-X main.GitCommit=$TAG_SHORT" -o ./tunnelbrokeragent cmd/main.go
 
       # Copy systemd file
@@ -105,17 +101,6 @@ jobs:
       #     echo "{name}=branch" >> $GITHUB_OUTPUT
       #     echo "Branch is $branch."
 
-      # - name: Set tag env
-      #   id: vars
-      #   run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      #   # ${{ steps.vars.outputs.sha_short }}
-
-      # - name: Build and push
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     # context: ${{ env.API_REPO }}
-      #     push: true
-      #     tags: ${{ env.HUB_USER }}/${{ env.API_REPO }}:${{ steps.vars.outputs.sha_short }}
 
   # deploy_via_ssh:
   #   needs: build_and_push
