@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -21,7 +22,7 @@ type Tunnel struct {
 func (t Tunnel) Marshal() ([]byte, error) {
 	data, err := json.Marshal(t)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Tunnel Marshal error %w", err)
 	}
 	return data, nil
 }

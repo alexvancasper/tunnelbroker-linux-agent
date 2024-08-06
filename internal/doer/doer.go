@@ -32,7 +32,6 @@ func (h Handler) AddTunnel(wg *sync.WaitGroup, data []byte) {
 		l.Errorf("Tunnel unmarshalling error: %s", err)
 	}
 	ExecAddCmd(tun, h.Log)
-
 }
 
 func (h Handler) DeleteTunnel(wg *sync.WaitGroup, data []byte) {
@@ -47,14 +46,38 @@ func (h Handler) DeleteTunnel(wg *sync.WaitGroup, data []byte) {
 	}
 	l.Debugf("Tunnel delete info: %v\n", tun)
 	ExecDeleteCmd(tun, h.Log)
+}
 
+func (h Handler) UpdateTunnel(wg *sync.WaitGroup, data []byte) {
+	defer wg.Done()
+	l := h.Log.WithFields(logrus.Fields{
+		"function": "UpdateTunnel",
+	})
+	var tun models.Tunnel
+	err := json.Unmarshal(data, &tun)
+	if err != nil {
+		l.Errorf("Tunnel unmarshalling error: %s", err)
+	}
+	l.Debugf("Tunnel update info: %v\n", tun)
+	ExecUpdateCmd(tun, h.Log)
+}
+
+func ExecUpdateCmd(tun models.Tunnel, log *logrus.Logger) {
+	l := log.WithFields(logrus.Fields{
+		"function": "ExecUpdateCmd",
+	})
+	ExecDeleteCmd(tun, log)
+	l.Debug("execDeleteCmd executed")
+	ExecAddCmd(tun, log)
+	l.Debug("execAddCmd executed")
 }
 
 func ExecAddCmd(tun models.Tunnel, log *logrus.Logger) {
 	l := log.WithFields(logrus.Fields{
 		"function": "ExecAddCmd",
 	})
-	c := exec.Command("/sbin/ip", "tunnel", "add", tun.TunnelName, "mode", "sit", "remote", tun.IPv4Remote, "local", tun.IPv4Local)
+	c := exec.Command("/sbin/ip", "tunnel", "add", tun.TunnelName, "mode", "sit",
+		"remote", tun.IPv4Remote, "local", tun.IPv4Local)
 	l.Debugf("cmd1: %s", c.String())
 	err := c.Run()
 	if err != nil {

@@ -7,17 +7,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alexvancasper/TunnelBroker/agent/internal/broker"
 	"github.com/alexvancasper/TunnelBroker/agent/internal/doer"
+	"github.com/alexvancasper/broker"
 	formatter "github.com/fabienm/go-logrus-formatters"
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-
-	//Initialize Logging connections
-	var MyLogger = logrus.New()
+	// Initialize Logging connections
+	MyLogger := logrus.New()
 
 	gelfFmt := formatter.NewGelf("agent")
 	MyLogger.SetFormatter(gelfFmt)
@@ -64,7 +63,9 @@ func main() {
 	MyLogger.Info("Graceful shutdown")
 }
 
-func Listener(ctx context.Context, wg *sync.WaitGroup, log *logrus.Logger, msgs <-chan amqp091.Delivery, closeChan chan<- struct{}) {
+func Listener(ctx context.Context, wg *sync.WaitGroup, log *logrus.Logger,
+	msgs <-chan amqp091.Delivery, closeChan chan<- struct{},
+) {
 	defer wg.Done()
 	defer close(closeChan)
 	l := log.WithField("function", "Listener")
@@ -91,6 +92,9 @@ func Listener(ctx context.Context, wg *sync.WaitGroup, log *logrus.Logger, msgs 
 			case string(broker.DELETE):
 				wg.Add(1)
 				go h.DeleteTunnel(wg, msg.Body)
+			case string(broker.UPDATE):
+				wg.Add(1)
+				go h.UpdateTunnel(wg, msg.Body)
 			}
 		}
 	}
