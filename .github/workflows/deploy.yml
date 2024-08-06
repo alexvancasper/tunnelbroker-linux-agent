@@ -31,9 +31,6 @@ jobs:
       - name: Build
         run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -o ./tunnelbrokeragent cmd/main.go
 
-      - name: checkout
-        uses: actions/checkout@v4
-
       - name: Set tag env
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
