@@ -51,8 +51,8 @@ jobs:
           username: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
-          source: ./tunnelbrokeragent
-          target: /opt/6in4/agent/bin/tunnelbrokeragent
+          source: /tunnelbroker-linux-agent/
+          target: /opt/6in4/agent/
 
       # Restart
       # https://raw.githubusercontent.com/alexvancasper/tunnelbroker-linux-agent/main/systemd/tunnelbroker-agent.service
