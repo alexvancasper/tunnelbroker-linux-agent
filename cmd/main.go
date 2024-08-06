@@ -15,9 +15,8 @@ import (
 )
 
 func main() {
-
-	//Initialize Logging connections
-	var MyLogger = logrus.New()
+	// Initialize Logging connections
+	MyLogger := logrus.New()
 
 	gelfFmt := formatter.NewGelf("agent")
 	MyLogger.SetFormatter(gelfFmt)
@@ -64,7 +63,9 @@ func main() {
 	MyLogger.Info("Graceful shutdown")
 }
 
-func Listener(ctx context.Context, wg *sync.WaitGroup, log *logrus.Logger, msgs <-chan amqp091.Delivery, closeChan chan<- struct{}) {
+func Listener(ctx context.Context, wg *sync.WaitGroup, log *logrus.Logger,
+	msgs <-chan amqp091.Delivery, closeChan chan<- struct{},
+) {
 	defer wg.Done()
 	defer close(closeChan)
 	l := log.WithField("function", "Listener")

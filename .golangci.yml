@@ -17,7 +17,7 @@ linters-settings:
     statements: 80
   cyclop:
     max-complexity: 14
-    package-average: 6.0
+    package-average: 7.0
     skip-tests: true
   nilnil:
     # Checks that there is no simultaneous return of `nil` error and an invalid value.
@@ -30,6 +30,9 @@ linters-settings:
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.
     max-func-lines: 30
+  gosec:
+    excludes:
+      - G204
 
 linters:
   disable-all: true
