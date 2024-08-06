@@ -26,6 +26,7 @@ func main() {
 		MyLogger.WithField("function", "main").Fatalf("error %v", err)
 	}
 	MyLogger.SetLevel(loglevel)
+	MyLogger.Info("tunnel update is implemented")
 
 	var wg sync.WaitGroup
 
