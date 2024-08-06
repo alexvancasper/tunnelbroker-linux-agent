@@ -34,6 +34,17 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tunnelbrokeragent
+          path: tunnelbrokeragent
+        
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tunnelbrokeragent
+          path: tunnelbrokeragent
+
       - name: Set tag env
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -41,8 +52,21 @@ jobs:
       - name: Show tag short
         run: export TAG_SHORT=${{ steps.vars.outputs.sha_short }}
 
+      # Copy systemd file
+      # - name: copy systemd file via ssh password
+      #   uses: appleboy/scp-action@v0.1.7
+      #   env:
+      #     TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
+      #   with:
+      #     host: ${{ secrets.VM_SSH_HOST }}
+      #     username: ${{ secrets.VM_SSH_USER }}
+      #     key: ${{ secrets.VM_SSH_KEY }}
+      #     port: ${{ secrets.VM_SSH_PORT }}
+      #     source: "systemd/tunnelbroker-agent.service"
+      #     target: /opt/6in4/agent/
+
       # Deploy agent file
-      - name: copy file via ssh password
+      - name: copy agent file via ssh password
         uses: appleboy/scp-action@v0.1.7
         env:
           TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
@@ -52,20 +76,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
           source: "tunnelbrokeragent"
-          target: /opt/6in4/agent/bin/tunnelbrokeragent
-
-      # Copy systemd file
-      - name: copy file via ssh password
-        uses: appleboy/scp-action@v0.1.7
-        env:
-          TAG_SHORT: ${{ steps.vars.outputs.sha_short }}
-        with:
-          host: ${{ secrets.VM_SSH_HOST }}
-          username: ${{ secrets.VM_SSH_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          port: ${{ secrets.VM_SSH_PORT }}
-          source: "systemd/tunnelbroker-agent.service"
-          target: /opt/6in4/agent/tunnelbroker-agent.service
+          target: /opt/6in4/agent/bin/
 
       # Restart
       - name: restart agent
