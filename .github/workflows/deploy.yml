@@ -34,23 +34,24 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tunnelbrokeragent
-          path: tunnelbrokeragent
-        
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: tunnelbrokeragent
-          path: tunnelbrokeragent
-
       - name: Set tag env
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Show tag short
         run: export TAG_SHORT=${{ steps.vars.outputs.sha_short }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          overwrite: true
+          name: agent_${{ steps.vars.outputs.sha_short }}
+          path: ./tunnelbrokeragent
+        
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: agent_${{ steps.vars.outputs.sha_short }}
 
       # Copy systemd file
       # - name: copy systemd file via ssh password
@@ -75,8 +76,8 @@ jobs:
           username: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
-          source: "tunnelbrokeragent"
-          target: /opt/6in4/agent/bin/
+          source: agent_${{ steps.vars.outputs.sha_short }}
+          target: /opt/6in4/agent/bin/tunnelbrokeragent
 
       # Restart
       - name: restart agent
