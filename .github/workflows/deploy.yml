@@ -28,10 +28,8 @@ jobs:
       - run: go version
       - name: Install dependencies
         run: go mod tidy
-      - name: Change workdir
-        run: cd cmd
       - name: Build
-        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -o /agent/bin/tunnelbrokeragent
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -o /agent/bin/tunnelbrokeragent cmd/main.go
 
       # - name: Install Compose
       #   uses: ndeloof/install-compose-action@v0.0.1
