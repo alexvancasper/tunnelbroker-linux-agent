@@ -6,6 +6,12 @@ on:
   push:
     branches: ["main"]
 
+
+env:
+  HUB_USER: alex129
+  API_REPO: agent
+  TAG_SHORT: 
+
 jobs:
   build_and_push:
     runs-on: ubuntu-22.04
@@ -15,23 +21,28 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install golang
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
           check-latest: true
       - run: go version
+      - name: Install dependencies
+        run: go mod tidy
+      - name: Build
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -o /agent/bin/tunnelbrokeragent
 
-      - name: Install Compose
-        uses: ndeloof/install-compose-action@v0.0.1
-        with:
-          legacy: true    # will also install in PATH as `docker-compose`
-      - run: docker-compose --version
+      # - name: Install Compose
+      #   uses: ndeloof/install-compose-action@v0.0.1
+      #   with:
+      #     legacy: true    # will also install in PATH as `docker-compose`
+      # - run: docker-compose --version
 
-      - name: Login to Docker hub Container Registry
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+      # - name: Login to Docker hub Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USER }}
+      #     password: ${{ secrets.DOCKER_TOKEN }}
+
 
       # - name: Get current branch
       #   id: check_step
@@ -41,10 +52,17 @@ jobs:
       #     echo "{name}=branch" >> $GITHUB_OUTPUT
       #     echo "Branch is $branch."
 
-      - name: Set tag env
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        # ${{ steps.vars.outputs.sha_short }}
+      # - name: Set tag env
+      #   id: vars
+      #   run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      #   # ${{ steps.vars.outputs.sha_short }}
+
+      # - name: Build and push
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     # context: ${{ env.API_REPO }}
+      #     push: true
+      #     tags: ${{ env.HUB_USER }}/${{ env.API_REPO }}:${{ steps.vars.outputs.sha_short }}
 
   deploy_via_ssh:
     needs: build_and_push
@@ -71,7 +89,7 @@ jobs:
           username: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
-          source: "/agent/"
+          source: "/agent"
           target: /opt/6in4/agent/
 
       # Restart
