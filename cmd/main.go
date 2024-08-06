@@ -14,6 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var GitCommit string
+
 func main() {
 	// Initialize Logging connections
 	MyLogger := logrus.New()
@@ -26,7 +28,7 @@ func main() {
 		MyLogger.WithField("function", "main").Fatalf("error %v", err)
 	}
 	MyLogger.SetLevel(loglevel)
-	MyLogger.Info("tunnel update is implemented")
+	MyLogger.Infof("GitCommit: %s", GitCommit)
 
 	var wg sync.WaitGroup
 

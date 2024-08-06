@@ -20,23 +20,24 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Install golang
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-          check-latest: true
-      - run: go version
-      - name: Install dependencies
-        run: go mod tidy
-      - name: Build
-        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -o ./tunnelbrokeragent cmd/main.go
-
       - name: Set tag env
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Show tag short
-        run: export TAG_SHORT=${{ steps.vars.outputs.sha_short }}
+        run: export TAG_SHORT=${{ steps.vars.outputs.sha_short }}        
+
+      - name: Install golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          check-latest: true
+          
+      - run: go version
+      - name: Install dependencies
+        run: go mod tidy
+      - name: Build
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s' -ldflags "-X main.GitCommit=$TAG_SHORT" -o ./tunnelbrokeragent cmd/main.go
 
       # Copy systemd file
       - name: copy agent file via ssh password
@@ -48,6 +49,7 @@ jobs:
           username: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT }}
+          strip_components: 1
           source: systemd/tunnelbroker-agent.service
           target: /opt/6in4/agent/
 
